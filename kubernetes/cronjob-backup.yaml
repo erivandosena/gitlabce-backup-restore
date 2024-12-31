@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gitlab-backup
+  namespace: gitlabcek8s
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: gitlab-backup
+              image: yourregistry/gitlab-backup:latest
+              env:
+                - name: ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-credentials
+                      key: access_key
+                - name: SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-credentials
+                      key: secret_key
+                - name: MINIO_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: gitlab-backup-config
+                      key: minio_endpoint
+                - name: MINIO_BUCKET
+                  valueFrom:
+                    configMapKeyRef:
+                      name: gitlab-backup-config
+                      key: minio_bucket
+                - name: BACKUP_DIR
+                  valueFrom:
+                    configMapKeyRef:
+                      name: gitlab-backup-config
+                      key: backup_dir
+              volumeMounts:
+                - name: backups-volume
+                  mountPath: /backups
+          restartPolicy: OnFailure
+          volumes:
+            - name: backups-volume
+              emptyDir: {}
