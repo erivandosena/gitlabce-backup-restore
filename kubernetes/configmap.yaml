@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitlab-backup-config
+  namespace: gitlabcek8s
+data:
+  minio_endpoint: "https://s3-api.it.com"
+  minio_bucket: "gitlabce"
+  backup_dir: "/backups"

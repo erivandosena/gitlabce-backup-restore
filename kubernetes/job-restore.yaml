@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gitlab-restore
+  namespace: gitlabcek8s
+spec:
+  template:
+    spec:
+      containers:
+        - name: gitlab-restore
+          image: yourregistry/gitlab-restore:latest
+          args:
+            - "TIMESTAMP"
+          env:
+            - name: ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: access_key
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: secret_key
+            - name: MINIO_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: gitlab-backup-config
+                  key: minio_endpoint
+            - name: MINIO_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: gitlab-backup-config
+                  key: minio_bucket
+            - name: BACKUP_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: gitlab-backup-config
+                  key: backup_dir
+              volumeMounts:
+                - name: backups-volume
+                  mountPath: /backups
+          restartPolicy: OnFailure
+          volumes:
+            - name: backups-volume
+              emptyDir: {}
